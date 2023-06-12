@@ -3,7 +3,7 @@ import editoras from "../models/Editora.js";
 
 class LivroController {
 
-  static listarLivros = async (req, res) => {
+  static listarLivros = async (req, res, next) => {
     try {
       const livrosResultados = await livros.find()
         .populate("autor")
@@ -11,13 +11,13 @@ class LivroController {
         .exec();
 
       res.status(200).json(livrosResultados);
-    } catch (error) {
-      res.status(500).json({message: "Erro interno do servidor!"});
+    } catch (err) {
+      next(err);
     }
 
   };
 
-  static listarLivroPorId = async (req, res) => {
+  static listarLivroPorId = async (req, res, next) => {
     try {
       const {id} = req.params;
       const livroResultado = await livros.findById(id)
@@ -27,44 +27,44 @@ class LivroController {
       
       res.status(200).json(livroResultado);
     } catch (err) {
-      res.status(400).json({message: `${err.message} - Id do livro não localizado.`});
+      next(err);
     }
   };
 
-  static cadastrarLivro = async (req, res) => {
+  static cadastrarLivro = async (req, res, next) => {
     try {
       const novoLivro = new livros(req.body);
       await novoLivro.save();
 
       res.status(201).json(novoLivro);
     } catch (err) {
-      res.status(500).json({message: `${err.message} - falha ao cadastrar livro.`});
+      next(err);
     }
   };
 
-  static atualizarLivro = async (req, res) => {
+  static atualizarLivro = async (req, res, next) => {
     try {
       const {id} = req.params;
       await livros.findByIdAndUpdate(id, {$set: req.body});
 
       res.status(200).json({message: "Livro atualizado com sucesso!"});
     } catch (err) {
-      res.status(500).json({message: `${err.message} - falha ao atualizar livro.`});
+      next(err);
     }
   };
 
-  static excluirLivro = async (req, res) => {
+  static excluirLivro = async (req, res, next) => {
     try {
       const {id} = req.params;
       await livros.findByIdAndDelete(id);
 
       res.status(200).json({message: "Livro excluído com sucesso!"});
     } catch (err) {
-      res.status(500).json({message: `${err.message}`});
+      next(err);
     }
   };
 
-  static listarLivroPorEditora = async (req, res) => {
+  static listarLivroPorEditora = async (req, res, next) => {
     try {
       const { editora } = req.query;
       const editoraResultado = await editoras.findOne({ nome: editora });
@@ -78,7 +78,7 @@ class LivroController {
   
       res.status(200).json(livrosEditoraResultados);
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   };
 

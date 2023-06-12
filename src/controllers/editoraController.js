@@ -2,50 +2,50 @@ import editoras from "../models/Editora.js";
 
 class EditoraController {
 
-  static listarEditoras = async (req, res) => {
+  static listarEditoras = async (req, res, next) => {
     try {
       const editorasResultados = await editoras.find();
-      
+
       res.status(200).json(editorasResultados);
     } catch (err) {
-      res.status(500).json({message: "Erro interno do servidor!"});
+      next(err);
     }
   };
 
-  static listarEditoraPorId = async (req, res) => {
+  static listarEditoraPorId = async (req, res, next) => {
     try {
       const {id} = req.params;
       const editoraResultado = await editoras.findById(id);
 
       res.status(200).json(editoraResultado);
     } catch (err) {
-      res.status(400).json({message: `${err.message} - Id da editora não localizado.`});
+      next(err);
     }
   };
 
-  static cadastrarEditora = async (req, res) => {
+  static cadastrarEditora = async (req, res, next) => {
     try {
       const novaEditora = new editoras(req.body);
       await novaEditora.save();
 
       res.status(201).json(novaEditora);
     } catch (err) {
-      res.status(500).json({message: `${err.message} - falha ao cadastrar editora.`});
+      next(err);
     }
   };
 
-  static atualizarEditora = async (req, res) => {
+  static atualizarEditora = async (req, res, next) => {
     try {
       const {id} = req.params;
       await editoras.findByIdAndUpdate(id, {$set: req.body});
 
       res.status(200).json({message: "editora atualizado com sucesso!"});
     } catch (err) {
-      res.status(500).json({message: `${err.message} - falha ao atualizar editora.`});
+      next(err);
     }
   };
 
-  static excluirEditora = async (req, res) => {
+  static excluirEditora = async (req, res, next) => {
     try {
       const {id} = req.params;
       await editoras.findByIdAndDelete(id);
@@ -53,7 +53,7 @@ class EditoraController {
       res.status(200).send({message: "editora excluído com sucesso!"});
 
     } catch (err) {
-      res.status(500).send({message: `${err.message}`});
+      next(err);
     }
 
   };

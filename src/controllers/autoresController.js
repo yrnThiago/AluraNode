@@ -1,19 +1,18 @@
-import mongoose from "mongoose";
 import autores from "../models/Autor.js";
 
 class AutorController {
 
-  static listarAutores = async (req, res) => {
+  static listarAutores = async (req, res, next) => {
     try {
       const autoresResultados = await autores.find();
     
       res.status(200).json(autoresResultados);
     } catch (err) {
-      res.status(500).json({message: "Erro interno no servidor."});
+      next(err);
     }
   };
 
-  static listarAutorPorId = async (req, res) => {
+  static listarAutorPorId = async (req, res, next) => {
     try {
       const {id} = req.params;
       const autorResultado = await autores.findById(id);
@@ -24,33 +23,29 @@ class AutorController {
         res.status(404).json({message: "Id do autor não localizado."});
       }
     } catch (err) {
-      if(err instanceof mongoose.Error.CastError) {
-        res.status(400).json({message: "Um ou mais dados fornecidos estão incorretos."});
-      } else {
-        res.status(500).json({message: "Erro interno do servidor."});
-      }
+      next(err);
     }
   };
 
-  static cadastrarAutor = async (req, res) => {
+  static cadastrarAutor = async (req, res, next) => {
     try {
       const novoAutor = new autores(req.body);
       await novoAutor.save();
 
       res.status(201).send(novoAutor.toJSON());
     } catch (err) {
-      res.status(500).send({message: `${err.message} - falha ao cadastrar autor.`});
+      next(err);
     }
   };
 
-  static atualizarAutor = async (req, res) => {
+  static atualizarAutor = async (req, res, next) => {
     try {
       const {id} = req.params;
       await autores.findByIdAndUpdate(id, {$set: req.body});
 
       res.status(200).send({message: "autor atualizado com sucesso."});
     } catch (err) {
-      res.status(500).send({message: `${err.message} - falha ao atualizar autor.`});
+      next(err);
     }
   };
 
