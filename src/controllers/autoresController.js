@@ -21,7 +21,7 @@ class AutorController {
       if(autorResultado !== null) {
         res.status(200).json(autorResultado);
       } else {
-        next(new NaoEncontrado("Id do autor não localizado"));
+        next(new NaoEncontrado("Id do autor não encontrado"));
       }
     } catch (err) {
       next(err);
@@ -42,22 +42,32 @@ class AutorController {
   static atualizarAutor = async (req, res, next) => {
     try {
       const {id} = req.params;
-      await autores.findByIdAndUpdate(id, {$set: req.body});
+      const autorResultado = await autores.findByIdAndUpdate(id, {$set: req.body});
 
-      res.status(200).send({message: "autor atualizado com sucesso."});
+      if(autorResultado != null) {
+        res.status(200).send({message: "autor atualizado com sucesso."});
+      } else {
+        next(new NaoEncontrado("Id do autor não encontrado"));
+      }
+
     } catch (err) {
       next(err);
     }
   };
 
-  static excluirAutor = async (req, res) => {
+  static excluirAutor = async (req, res, next) => {
     try {
       const {id} = req.params;
-      await autores.findByIdAndDelete(id);
+      const autorResultado = await autores.findByIdAndDelete(id);
 
-      res.status(200).send({message: "autor excluído com sucesso."});
+      if(autorResultado != null) {
+        res.status(200).send({message: "autor excluído com sucesso"});
+      } else {
+        next(new NaoEncontrado("Id do autor não encontrado"));
+      }
+      
     } catch (err) {
-      res.status(500).send({message: `${err.message}`});
+      next(err);
     }
   };
 

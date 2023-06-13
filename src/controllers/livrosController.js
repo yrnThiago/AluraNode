@@ -1,5 +1,6 @@
 import livros from "../models/Livro.js";
 import editoras from "../models/Editora.js";
+import NaoEncontrado from "../erros/NaoEncontrado.js";
 
 class LivroController {
 
@@ -25,7 +26,11 @@ class LivroController {
         .populate("editora", "nome")
         .exec();
       
-      res.status(200).json(livroResultado);
+      if(livroResultado != null) {
+        res.status(200).json(livroResultado);
+      } else {
+        next(new NaoEncontrado("ID do livro não encontrado"));
+      }
     } catch (err) {
       next(err);
     }
@@ -45,9 +50,14 @@ class LivroController {
   static atualizarLivro = async (req, res, next) => {
     try {
       const {id} = req.params;
-      await livros.findByIdAndUpdate(id, {$set: req.body});
+      const livroResultado = await livros.findByIdAndUpdate(id, {$set: req.body});
 
-      res.status(200).json({message: "Livro atualizado com sucesso!"});
+      if(livroResultado != null) {
+        res.status(200).json({message: "Livro atualizado com sucesso"});
+      } else {
+        next(new NaoEncontrado("ID do livro não encontrado"));
+      }
+      
     } catch (err) {
       next(err);
     }
@@ -56,9 +66,13 @@ class LivroController {
   static excluirLivro = async (req, res, next) => {
     try {
       const {id} = req.params;
-      await livros.findByIdAndDelete(id);
+      const livroResultado = await livros.findByIdAndDelete(id);
 
-      res.status(200).json({message: "Livro excluído com sucesso!"});
+      if(livroResultado != null) {
+        res.status(200).json({message: "Livro excluído com sucesso"});
+      } else {
+        next(new NaoEncontrado("ID do livro não encontrado"));
+      }
     } catch (err) {
       next(err);
     }
@@ -70,8 +84,7 @@ class LivroController {
       const editoraResultado = await editoras.findOne({ nome: editora });
   
       if (!editoraResultado) {
-        res.status(404).json({ message: "Editora não encontrada." });
-        return;
+        next(new NaoEncontrado("Editora não encontrada"));
       }
   
       const livrosEditoraResultados = await livros.find({ editora: editoraResultado._id }).populate("editora", "nome");

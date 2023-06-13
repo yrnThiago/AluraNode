@@ -1,3 +1,4 @@
+import NaoEncontrado from "../erros/NaoEncontrado.js";
 import editoras from "../models/Editora.js";
 
 class EditoraController {
@@ -17,7 +18,11 @@ class EditoraController {
       const {id} = req.params;
       const editoraResultado = await editoras.findById(id);
 
-      res.status(200).json(editoraResultado);
+      if(editoraResultado != null) {
+        res.status(200).json(editoraResultado);
+      } else {
+        next(new NaoEncontrado("ID da editora não encontrado"));
+      }
     } catch (err) {
       next(err);
     }
@@ -37,9 +42,13 @@ class EditoraController {
   static atualizarEditora = async (req, res, next) => {
     try {
       const {id} = req.params;
-      await editoras.findByIdAndUpdate(id, {$set: req.body});
+      const editoraResultado = await editoras.findByIdAndUpdate(id, {$set: req.body});
 
-      res.status(200).json({message: "editora atualizado com sucesso!"});
+      if(editoraResultado != null) {
+        res.status(200).json({message: "editora atualizado com sucesso!"});
+      } else {
+        next(new NaoEncontrado("ID da editora não encontrado"));
+      }
     } catch (err) {
       next(err);
     }
@@ -48,14 +57,16 @@ class EditoraController {
   static excluirEditora = async (req, res, next) => {
     try {
       const {id} = req.params;
-      await editoras.findByIdAndDelete(id);
+      const editoraResultado = await editoras.findByIdAndDelete(id);
 
-      res.status(200).send({message: "editora excluído com sucesso!"});
-
+      if(editoraResultado != null) {
+        res.status(200).send({message: "editora excluído com sucesso!"});
+      } else {
+        next(new NaoEncontrado("ID da editora não encontrado"));
+      }
     } catch (err) {
       next(err);
     }
-
   };
 
 }
