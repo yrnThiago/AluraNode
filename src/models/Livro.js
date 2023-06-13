@@ -13,9 +13,8 @@ const livroSchema = new mongoose.Schema(
       required: [true, "O(a) autor(a) é obrigatório"]
     },
     editora: {
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: "editoras", 
-      required: [true, "O ID da editora é obrigatório"],
+      type: String, 
+      required: [true, "A editora é obrigatória"],
       enum: { 
         values: ["Casa do Código", "Alura", "Programação"],
         message: "A editora {VALUE} não é permitida"

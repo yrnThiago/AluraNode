@@ -94,6 +94,34 @@ class LivroController {
     }
   };
 
+  static listarLivroPorFiltro = async (req, res, next) => {
+    try {
+      const busca = processaBusca(req.query);
+
+      const livroResultado = await livros.find(busca).populate("editora", "nome");
+
+      res.status(200).json(livroResultado);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+}
+
+function processaBusca(params){
+  const { editora, titulo, minPaginas, maxPaginas } = params;
+
+  const busca = {};
+
+  if(editora) busca.editora = { $regex: editora, $options: "i"};
+  if(titulo) busca.titulo = { $regex: titulo, $options: "i"};
+
+  if(minPaginas || maxPaginas) busca.numeroPaginas = {};
+
+  if(minPaginas) busca.numeroPaginas.$gte = minPaginas;
+  if(maxPaginas) busca.numeroPaginas.$lte = maxPaginas;
+
+  return busca;
 }
 
 export default LivroController;
