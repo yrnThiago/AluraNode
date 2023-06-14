@@ -1,4 +1,4 @@
-import {livros, editoras} from "../models/index.js";
+import {livros, editoras, autores} from "../models/index.js";
 import NaoEncontrado from "../erros/NaoEncontrado.js";
 
 class LivroController {
@@ -77,30 +77,19 @@ class LivroController {
     }
   };
 
-  static listarLivroPorEditora = async (req, res, next) => {
-    try {
-      const { editora } = req.query;
-      const editoraResultado = await editoras.findOne({ nome: editora });
-  
-      if (!editoraResultado) {
-        next(new NaoEncontrado("Editora não encontrada"));
-      }
-  
-      const livrosEditoraResultados = await livros.find({ editora: editoraResultado._id }).populate("editora", "nome");
-  
-      res.status(200).json(livrosEditoraResultados);
-    } catch (err) {
-      next(err);
-    }
-  };
-
   static listarLivroPorFiltro = async (req, res, next) => {
     try {
-      const busca = processaBusca(req.query);
+      const busca = await processaBusca(req.query);
 
-      const livroResultado = await livros.find(busca).populate("editora", "nome");
+      if(busca !== null){
+        const livroResultado = await livros.find(busca)
+          .populate("editora")
+          .populate("autor");
 
-      res.status(200).json(livroResultado);
+        res.status(200).json(livroResultado);
+      } else {
+        res.status(200).json([]);
+      }
     } catch (err) {
       next(err);
     }
@@ -108,18 +97,31 @@ class LivroController {
 
 }
 
-function processaBusca(params){
-  const { editora, titulo, minPaginas, maxPaginas } = params;
+async function processaBusca(params){
+  const { editora, titulo, minPaginas, maxPaginas, nomeAutor } = params;
 
-  const busca = {};
+  let busca = {};
 
-  if(editora) busca.editora = { $regex: editora, $options: "i"};
   if(titulo) busca.titulo = { $regex: titulo, $options: "i"};
 
   if(minPaginas || maxPaginas) busca.numeroPaginas = {};
 
   if(minPaginas) busca.numeroPaginas.$gte = minPaginas;
   if(maxPaginas) busca.numeroPaginas.$lte = maxPaginas;
+
+  if(editora) {
+    const editoraResultado = await editoras.findOne({nome: editora});
+    
+    if(editoraResultado !== null) busca.editora = editoraResultado._id;
+    else busca = null;
+  }
+
+  if(nomeAutor) {
+    const autor = await autores.findOne({nome: nomeAutor});
+
+    if(autor !== null) busca.autor = autor._id;
+    else busca = null;
+  }
 
   return busca;
 }
